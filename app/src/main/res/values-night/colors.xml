@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="colorPrimary">#D35A0298</color>
+    <color name="colorPrimaryDark">#D3430271</color>
+    <color name="colorAccent">#C6CD527C</color>
+    <color name="colorAccentWhite">#C4FBFBFB</color>
+    <color name="colorText">#DFF3F1F1</color>
+    <color name="editTextBackground">#97070000</color>
+    <color name="myMessageBackground">#BC247A73</color>
+</resources>

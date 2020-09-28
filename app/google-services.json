@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "505027768755",
+    "firebase_url": "https://anonmoscowchat.firebaseio.com",
+    "project_id": "anonmoscowchat",
+    "storage_bucket": "anonmoscowchat.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:505027768755:android:1ac2e18d53e8db72685bc6",
+        "android_client_info": {
+          "package_name": "study.kotlin.anonmoscowchat"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "505027768755-s3kjpnq8ja9tmf9b8f9mv34476ia69af.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAXHjyuuQbkLb08El99GU5ZgD0wFTKvNfY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "505027768755-s3kjpnq8ja9tmf9b8f9mv34476ia69af.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
