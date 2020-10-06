@@ -1,10 +1,11 @@
-package study.kotlin.anonmoscowchat.presenter
+package study.kotlin.anonmoscowchat.presenters
 
 import study.kotlin.anonmoscowchat.messages.Message
 import study.kotlin.anonmoscowchat.model.Model
-import study.kotlin.anonmoscowchat.ui.IChatActivityPresenter
+import study.kotlin.anonmoscowchat.presenters.interfaces.IChatPresenterModel
+import study.kotlin.anonmoscowchat.presenters.interfaces.IChatActivityPresenter
 
-class ChatActivityPresenter(private val messageView: IChatActivityPresenter) :IChatPresenterModel {
+class ChatActivityPresenter(private val messageView: IChatActivityPresenter) : IChatPresenterModel {
 
     private val model = Model.getInstance()
 

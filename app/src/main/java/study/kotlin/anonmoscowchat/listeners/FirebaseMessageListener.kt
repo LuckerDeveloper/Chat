@@ -1,12 +1,10 @@
 package study.kotlin.anonmoscowchat.listeners
 
-import android.util.Log
 import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
-import study.kotlin.anonmoscowchat.commons.ActivityConstants
-import study.kotlin.anonmoscowchat.commons.MessageClassConstants
-import study.kotlin.anonmoscowchat.commons.ViewTypeConstants
+import study.kotlin.anonmoscowchat.commons.constants.MessageClassConstants
+import study.kotlin.anonmoscowchat.commons.constants.ViewTypeConstants
 import study.kotlin.anonmoscowchat.messages.Message
 import study.kotlin.anonmoscowchat.model.Model
 

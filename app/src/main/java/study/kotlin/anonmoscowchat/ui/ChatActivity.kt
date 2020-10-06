@@ -15,20 +15,21 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.transition.Visibility
 import kotlinx.android.synthetic.main.chat_activity.*
 import study.kotlin.anonmoscowchat.messages.Message
 import study.kotlin.anonmoscowchat.R
 import study.kotlin.anonmoscowchat.adapter.MessageAdapter
-import study.kotlin.anonmoscowchat.commons.ActivityConstants
-import study.kotlin.anonmoscowchat.commons.ActivityConstants.DARK_THEME
-import study.kotlin.anonmoscowchat.presenter.ChatActivityPresenter
+import study.kotlin.anonmoscowchat.commons.constants.ActivityConstants
+import study.kotlin.anonmoscowchat.commons.constants.ActivityConstants.DARK_THEME
+import study.kotlin.anonmoscowchat.commons.constants.ServiceConstants
+import study.kotlin.anonmoscowchat.presenters.ChatActivityPresenter
+import study.kotlin.anonmoscowchat.presenters.interfaces.IChatActivityPresenter
 
+//onBackPressed реализовать
 
 
 class ChatActivity : AppCompatActivity() , IChatActivityPresenter {
 
-    private val TAG = "ChatActivity"
     private val presenter = ChatActivityPresenter(this)
     private lateinit var adapter: MessageAdapter
     private lateinit var sharedPreferences:SharedPreferences
@@ -75,7 +76,6 @@ class ChatActivity : AppCompatActivity() , IChatActivityPresenter {
 
     fun stopChat(){
         presenter.stopChat()
-
     }
 
     override fun updateMessages(list: MutableList<Message>) {
@@ -99,10 +99,12 @@ class ChatActivity : AppCompatActivity() , IChatActivityPresenter {
                 .show()
             toolbar.setNavigationOnClickListener {
                 startActivity(Intent(this, MainActivity::class.java))
+                finish()
             }
             write_linear_layout.visibility =View.GONE
         } else{
             startActivity(Intent(this, MainActivity::class.java))
+            finish()
         }
     }
 

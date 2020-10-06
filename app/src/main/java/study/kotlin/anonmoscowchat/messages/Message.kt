@@ -1,7 +1,7 @@
 package study.kotlin.anonmoscowchat.messages
 
 import study.kotlin.anonmoscowchat.commons.ViewType
-import study.kotlin.anonmoscowchat.commons.ViewTypeConstants
+import study.kotlin.anonmoscowchat.commons.constants.ViewTypeConstants
 
 class Message : ViewType {
 

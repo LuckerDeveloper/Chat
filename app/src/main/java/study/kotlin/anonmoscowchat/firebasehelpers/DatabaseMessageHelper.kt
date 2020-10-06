@@ -2,6 +2,7 @@ package study.kotlin.anonmoscowchat.firebasehelpers
 
 import android.util.Log
 import com.google.firebase.database.FirebaseDatabase
+import study.kotlin.anonmoscowchat.commons.constants.ServiceConstants.TAG
 import study.kotlin.anonmoscowchat.listeners.FirebaseMessageListener
 import study.kotlin.anonmoscowchat.messages.Message
 import study.kotlin.anonmoscowchat.model.MESSAGES
@@ -22,7 +23,7 @@ class DatabaseMessageHelper(val model: Model) {
         try {
             mDatabaseMessageReference.child(chatId).removeEventListener(messageListener)
         } catch (e: Exception){
-            Log.e(model.TAG, "listener already removed "+e.message)
+            Log.e(Model.TAG, "listener already removed "+e.message)
         }
     }
 

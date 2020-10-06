@@ -1,4 +1,4 @@
-package study.kotlin.anonmoscowchat.presenter
+package study.kotlin.anonmoscowchat.presenters.interfaces
 
 interface IMainPresenterModel {
 

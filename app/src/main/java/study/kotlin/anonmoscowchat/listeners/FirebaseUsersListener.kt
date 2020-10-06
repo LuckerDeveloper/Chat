@@ -60,7 +60,7 @@ class FirebaseUsersListener( private val model: Model ): ChildEventListener {
     }
 
     override fun onCancelled(error: DatabaseError) {
-        Log.v(model.TAG, "error: "+error.message)
+        Log.v(Model.TAG, "error: "+error.message)
     }
 
 }

@@ -1,7 +1,6 @@
 package study.kotlin.anonmoscowchat.ui
 
-import android.content.Intent
-import android.content.SharedPreferences
+import android.content.*
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -9,17 +8,30 @@ import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.preference.PreferenceManager
-import androidx.transition.Visibility
 import kotlinx.android.synthetic.main.activity_main.*
 import study.kotlin.anonmoscowchat.R
-import study.kotlin.anonmoscowchat.commons.ActivityConstants
-import study.kotlin.anonmoscowchat.presenter.MainActivityPresenter
+import study.kotlin.anonmoscowchat.application.App
+import study.kotlin.anonmoscowchat.commons.NotificationHelper
+import study.kotlin.anonmoscowchat.commons.constants.ActivityConstants
+import study.kotlin.anonmoscowchat.commons.constants.MainActivityConstants
+import study.kotlin.anonmoscowchat.commons.constants.MainActivityConstants.FIND_USER_SERVICE_ACTION
+import study.kotlin.anonmoscowchat.commons.constants.ServiceConstants
+import study.kotlin.anonmoscowchat.commons.constants.ServiceConstants.FIND_MODE_NOTIFICATION_ID
+import study.kotlin.anonmoscowchat.commons.constants.ServiceConstants.SERVICE_HANDLE_WORK_KEY
+import study.kotlin.anonmoscowchat.commons.constants.ServiceConstants.START_SEARCHING_MODE
+import study.kotlin.anonmoscowchat.commons.constants.ServiceConstants.STOP_SEARCHING_MODE
+import study.kotlin.anonmoscowchat.presenters.MainActivityPresenter
+import study.kotlin.anonmoscowchat.presenters.interfaces.IMainActivityPresenter
+import study.kotlin.anonmoscowchat.services.FindInterlocutorService
 
 
 class MainActivity : AppCompatActivity(), IMainActivityPresenter {
 
     private lateinit var sharedPreferences: SharedPreferences
     private lateinit var presenter: MainActivityPresenter
+    private val notificationHelper : NotificationHelper by lazy {
+        NotificationHelper(this)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         setDarkMode()
@@ -28,13 +40,18 @@ class MainActivity : AppCompatActivity(), IMainActivityPresenter {
 
         presenter = MainActivityPresenter(this)
 
+        if (intent.getIntExtra(MainActivityConstants.BUTTON_MODE_KEY, 0)==MainActivityConstants.STOP_SEARCHING_MODE_BUTTON){
+            start_chat_button.text = "Остановить поиск"
+        }
+
+
         start_chat_button.setOnClickListener {
-            if (start_chat_button.text.toString()=="Найти собеседника"){
-                presenter.createNewChat()
-                start_chat_button.setText("Остановить поиск")
-            } else if (start_chat_button.text.toString()=="Остановить поиск"){
-                presenter.stopSearching()
-                start_chat_button.setText("Найти собеседника")
+            if (start_chat_button.text.toString()==resources.getString(R.string.start_searching_button_text)){
+                start_chat_button.text = resources.getString(R.string.stop_searching_button_text)
+                sendCommandToService(START_SEARCHING_MODE)
+            } else if (start_chat_button.text.toString()==resources.getString(R.string.stop_searching_button_text)){
+                start_chat_button.text = resources.getString(R.string.start_searching_button_text)
+                sendCommandToService(STOP_SEARCHING_MODE)
             }
         }
     }
@@ -42,14 +59,17 @@ class MainActivity : AppCompatActivity(), IMainActivityPresenter {
     override fun onStart() {
         super.onStart()
         presenter.subscribe()
+        notificationHelper.cancelAllNotifications()
     }
 
     override fun onStop() {
         super.onStop()
-        presenter.stopSearching()
+        if (start_chat_button.text.toString()=="Остановить поиск"&& !(applicationContext as App).isInApplication()){
+            val notification =notificationHelper
+                .createNotification("Поиск собеседника", ActivityConstants.MAIN_ACTIVITY)
+            notificationHelper.notify(FIND_MODE_NOTIFICATION_ID, notification)
+        }
     }
-
-
 
     private fun setDarkMode(){
         sharedPreferences= PreferenceManager.getDefaultSharedPreferences(this)
@@ -71,8 +91,11 @@ class MainActivity : AppCompatActivity(), IMainActivityPresenter {
     override fun activateButton() {
         progress_bar.visibility = View.GONE
         start_chat_button.visibility=View.VISIBLE
-//        start_chat_button.isEnabled=true
     }
 
-
+    private fun sendCommandToService (command : Int){
+        val intent = Intent(this, FindInterlocutorService::class.java)
+        intent.putExtra(SERVICE_HANDLE_WORK_KEY, command )
+        startService(intent)
+    }
 }

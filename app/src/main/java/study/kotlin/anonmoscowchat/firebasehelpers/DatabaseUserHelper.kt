@@ -30,16 +30,14 @@ class DatabaseUserHelper(val model: Model) {
     }
 
     fun createChat (){
-        Log.v(model.TAG, "user listener is added")
         lookingForQuery.addChildEventListener(lookingForUsersListener)
     }
 
     fun removeListener(){
         try {
             lookingForQuery.removeEventListener(lookingForUsersListener)
-            Log.v(model.TAG, "user listener is removed")
         } catch (e : Exception){
-            Log.e(model.TAG, "stopSearching: listener already deleted. "+e.toString())
+            Log.e(Model.TAG, "stopSearching: listener already deleted. "+e.toString())
         }
     }
 

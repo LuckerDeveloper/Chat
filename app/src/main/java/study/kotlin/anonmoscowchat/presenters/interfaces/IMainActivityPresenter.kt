@@ -1,4 +1,4 @@
-package study.kotlin.anonmoscowchat.ui
+package study.kotlin.anonmoscowchat.presenters.interfaces
 
 interface IMainActivityPresenter {
     fun startChatActivity()

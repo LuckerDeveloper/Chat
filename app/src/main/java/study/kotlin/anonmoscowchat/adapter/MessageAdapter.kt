@@ -7,7 +7,7 @@ import android.view.ViewGroup
 import kotlinx.android.synthetic.main.message_item.view.*
 import study.kotlin.anonmoscowchat.messages.Message
 import study.kotlin.anonmoscowchat.R
-import study.kotlin.anonmoscowchat.commons.ViewTypeConstants
+import study.kotlin.anonmoscowchat.commons.constants.ViewTypeConstants
 import java.util.*
 
 class MessageAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {

@@ -13,10 +13,10 @@ class FirebaseSignInListener(private val model: Model) : OnCompleteListener<Auth
         if (task.isSuccessful){
             model.userId= model.mFirebaseAuth.currentUser?.uid
             model.userIsLogged()
-            Log.v(model.TAG, "Auth success")
+            Log.v(Model.TAG, "Auth success")
         } else {
             //необходимо перезапустить приложение
-            Log.v(model.TAG, "Auth failed")
+            Log.v(Model.TAG, "Auth failed")
         }
     }
 }

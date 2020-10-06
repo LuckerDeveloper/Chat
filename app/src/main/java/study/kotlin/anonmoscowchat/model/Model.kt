@@ -3,19 +3,24 @@ package study.kotlin.anonmoscowchat.model
 import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
+import study.kotlin.anonmoscowchat.commons.constants.ServiceConstants
+import study.kotlin.anonmoscowchat.commons.constants.ServiceConstants.TAG
 import study.kotlin.anonmoscowchat.firebasehelpers.DatabaseChatHelper
 import study.kotlin.anonmoscowchat.firebasehelpers.DatabaseMessageHelper
 import study.kotlin.anonmoscowchat.firebasehelpers.DatabaseUserHelper
 import study.kotlin.anonmoscowchat.firebasehelpers.FirebaseAuthHelper
-import study.kotlin.anonmoscowchat.listeners.*
 import study.kotlin.anonmoscowchat.messages.Message
-import study.kotlin.anonmoscowchat.presenter.IChatPresenterModel
-import study.kotlin.anonmoscowchat.presenter.IMainPresenterModel
+import study.kotlin.anonmoscowchat.presenters.interfaces.IChatPresenterModel
+import study.kotlin.anonmoscowchat.presenters.interfaces.IFindInterlocutorPresenterModel
+import study.kotlin.anonmoscowchat.presenters.interfaces.IMainPresenterModel
+import study.kotlin.anonmoscowchat.services.FindInterlocutorService
 import study.kotlin.anonmoscowchat.users.User
 
 
 // разобраться с listener, несколькократные сообщения,
 // в userlistener внедрить helper
+
+//2 chat activity
 
 const val MESSAGES = "messages"
 const val CHATS = "chats"
@@ -26,9 +31,8 @@ const val IS_ACTIVE = "active"
 
 class Model private constructor() {
 
-    val TAG = "Model"
-
     companion object{
+        const val TAG="Model"
         private var INSTANCE : Model? = null
         fun getInstance():Model {
             if (INSTANCE==null) INSTANCE=Model()
@@ -38,6 +42,7 @@ class Model private constructor() {
 
     lateinit var chatPresenter: IChatPresenterModel
     private lateinit var mainActivityPresenter: IMainPresenterModel
+    private var findInterlocutorPresenter : IFindInterlocutorPresenterModel? = null
 
     val mFirebaseAuth = FirebaseAuth.getInstance()
 
@@ -49,7 +54,7 @@ class Model private constructor() {
     var userId: String? = null
     var currentChatId: String? = null
 
-    fun setMainActivityPresenter(presenter: IMainPresenterModel){
+    fun setMainAPresenterAndCheckHasActiveChat(presenter: IMainPresenterModel){
         this.mainActivityPresenter = presenter
         userId = mFirebaseAuth.currentUser?.uid
         if (userId==null) firebaseAuthHelper.signIn()
@@ -69,6 +74,7 @@ class Model private constructor() {
     }
 
     private fun setChatId(){
+        //Проверка на наличие активного чата
         userId?.let { databaseUserHelper.getChatIdFromDB(it) }
     }
 
@@ -87,13 +93,14 @@ class Model private constructor() {
     fun chatIsActive(){
         currentChatId?.let { databaseChatHelper.addChatIsActiveListener(it) }
         mainActivityPresenter.chatIsActive()
+        findInterlocutorPresenter?.interlocutorIsFound()
     }
 
     fun chatIsNotActive(){
         mainActivityPresenter.chatIsNotActive()
     }
 
-    fun createNewChat(){
+    fun startFindingInterlocutor(){
         val currentUser = User()
         currentUser.isLookingFor=true
         userId?.let { databaseUserHelper.setUser(it, currentUser) }
@@ -131,6 +138,7 @@ class Model private constructor() {
 
     fun chatStopped(){
         chatPresenter.chatStopped(true)
+        Log.v(ServiceConstants.TAG, "chat stopped")
     }
 
     fun sendMessage(messageText: String) {
@@ -147,4 +155,12 @@ class Model private constructor() {
         userId?.let { databaseUserHelper.setUser(it, User()) }
         chatPresenter.chatStopped(false)
     }
+
+
+
+
+    fun setFindInterlocutorPresenter(presenter: IFindInterlocutorPresenterModel){
+        this.findInterlocutorPresenter=presenter
+    }
+
 }
