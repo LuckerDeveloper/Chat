@@ -1,39 +1,51 @@
 package study.kotlin.anonmoscowchat.presenters
 
+import android.content.Intent
+import android.util.Log
 import study.kotlin.anonmoscowchat.messages.Message
 import study.kotlin.anonmoscowchat.model.Model
 import study.kotlin.anonmoscowchat.presenters.interfaces.IChatPresenterModel
 import study.kotlin.anonmoscowchat.presenters.interfaces.IChatActivityPresenter
+import study.kotlin.anonmoscowchat.ui.MainActivity
 
-class ChatActivityPresenter(private val messageView: IChatActivityPresenter) : IChatPresenterModel {
+class ChatActivityPresenter(val model: Model) : IChatPresenterModel {
 
-    private val model = Model.getInstance()
+    lateinit var chatActivity: IChatActivityPresenter
 
-    fun sendMessage(messageText: String){
-        if (!messageText.isEmpty())model.sendMessage(messageText)
+    init {
+        model.chatPresenter=this
     }
 
-    fun subscribe(){
-        model.setChatActivityPresenterAndListener(this)
+    fun onClickSendMessage(messageText: String){
+        model.onClickSendMessage(messageText)
+    }
+
+    fun subscribe(chatActivity: IChatActivityPresenter){
+        this.chatActivity = chatActivity
+        model.chatActivitySubscribed()
     }
 
     fun unsubscribe(){
-        model.removeMessageListener()
+        model.chatActivityUnsubscribed()
     }
 
-    fun stopChat(){
-        model.stopChat()
-    }
-
-    override fun updateMessages(messages: MutableList<Message>) {
-        messageView.updateMessages(messages)
+    fun onClickStopChat(){
+        model.onClickStopChat()
     }
 
     override fun addMessage(message: Message) {
-        messageView.addMessage(message)
+        chatActivity.addMessage(message)
     }
 
-    override fun chatStopped(showDialogWindow: Boolean) {
-        messageView.chatStopped(showDialogWindow)
+    override fun showDialogWindow() {
+        chatActivity.showDialogWindow()
+    }
+
+    override fun setToolbarNavigationButtonToStartMainActivity() {
+        chatActivity.setToolbarNavigationButtonToStartMainActivity()
+    }
+
+    override fun startMainActivity() {
+        chatActivity.startMainActivity()
     }
 }

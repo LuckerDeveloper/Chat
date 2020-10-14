@@ -2,5 +2,6 @@ package study.kotlin.anonmoscowchat.presenters.interfaces
 
 interface IFindInterlocutorPresenterModel {
 
-    fun interlocutorIsFound()
+    fun showNotification()
+    fun stopFindInterlocutorService()
 }

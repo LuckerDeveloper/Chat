@@ -5,10 +5,11 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import study.kotlin.anonmoscowchat.commons.constants.MessageClassConstants
 import study.kotlin.anonmoscowchat.commons.constants.ViewTypeConstants
+import study.kotlin.anonmoscowchat.firebasehelpers.DatabaseMessageHelper
 import study.kotlin.anonmoscowchat.messages.Message
 import study.kotlin.anonmoscowchat.model.Model
 
-class FirebaseMessageListener(private val model: Model) : ChildEventListener {
+class FirebaseMessageListener(private val databaseMessageHelper: DatabaseMessageHelper) : ChildEventListener {
 
     override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
         val message =
@@ -17,9 +18,7 @@ class FirebaseMessageListener(private val model: Model) : ChildEventListener {
             snapshot.child(MessageClassConstants.TIMESTAMP).value as Long
         message.author =
             snapshot.child(MessageClassConstants.AUTHOR).value.toString()
-        if (message.author==model.userId) message.viewType = ViewTypeConstants.MY_MESSAGE
-        model.newMessageAppeared(message)
-
+        databaseMessageHelper.setNewMessageFromDB(message)
     }
 
     override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {

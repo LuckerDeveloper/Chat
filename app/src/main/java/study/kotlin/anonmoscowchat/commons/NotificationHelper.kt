@@ -29,7 +29,9 @@ class NotificationHelper(val context: Context) {
                 notificationIntent = Intent(context, MainActivity::class.java)
                 notificationIntent.putExtra(MainActivityConstants.BUTTON_MODE_KEY, MainActivityConstants.STOP_SEARCHING_MODE_BUTTON)
             }
-            ActivityConstants.CHAT_ACTIVITY -> notificationIntent = Intent(context, ChatActivity::class.java)
+            ActivityConstants.CHAT_ACTIVITY -> {
+                notificationIntent = Intent(context, ChatActivity::class.java)
+            }
         }
         notificationIntent?.putExtra(MainActivityConstants.KEY_ACTION,
             MainActivityConstants.CHAT_CREATED)

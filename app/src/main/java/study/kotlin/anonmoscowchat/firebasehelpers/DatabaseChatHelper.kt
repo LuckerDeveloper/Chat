@@ -2,22 +2,25 @@ package study.kotlin.anonmoscowchat.firebasehelpers
 
 import android.util.Log
 import com.google.firebase.database.FirebaseDatabase
+import study.kotlin.anonmoscowchat.Repository
 import study.kotlin.anonmoscowchat.chat.Chat
 import study.kotlin.anonmoscowchat.listeners.FirebaseChatIsActiveListener
 import study.kotlin.anonmoscowchat.model.CHATS
 import study.kotlin.anonmoscowchat.model.IS_ACTIVE
-import study.kotlin.anonmoscowchat.model.Model
-import study.kotlin.anonmoscowchat.model.USERS
 import java.lang.Exception
+import javax.inject.Inject
 
-class DatabaseChatHelper(val model: Model) {
+class DatabaseChatHelper  {
+
+    lateinit var repository: Repository
 
     private val mDatabaseChatReference = FirebaseDatabase.getInstance().reference.child(CHATS)
-    private val chatIsActiveListener = FirebaseChatIsActiveListener(model)
+    private val chatIsActiveListener = FirebaseChatIsActiveListener(this, false)
 
-    fun getChatIsActive(chatId:String){
+
+    fun addListenerForChatIsActiveValue(chatId:String){
         mDatabaseChatReference.child(chatId).child(IS_ACTIVE)
-            .addListenerForSingleValueEvent(FirebaseChatIsActiveListener(model, true))
+            .addListenerForSingleValueEvent(chatIsActiveListener)
     }
 
     fun addChatIsActiveListener(chatId: String){
@@ -41,11 +44,15 @@ class DatabaseChatHelper(val model: Model) {
         mDatabaseChatReference.child(chatId).setValue(chat)
     }
 
-    fun setUserId(chatId: String, userId: String){
+    fun setUserIdInChat(chatId: String, userId: String){
         mDatabaseChatReference.child(chatId).child(userId).setValue(true)
     }
 
-    fun pushChat():String?{
+    fun pushChat():String{
         return mDatabaseChatReference.push().key.toString()
+    }
+
+    fun setIsChatActive(isChatActive: Boolean) {
+        repository.setIsChatActiveInModel(isChatActive)
     }
 }

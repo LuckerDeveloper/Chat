@@ -12,21 +12,29 @@ import study.kotlin.anonmoscowchat.commons.constants.ServiceConstants.START_SEAR
 import study.kotlin.anonmoscowchat.commons.constants.ServiceConstants.STOP_SEARCHING_MODE
 import study.kotlin.anonmoscowchat.presenters.FindInterlocutorPresenter
 import study.kotlin.anonmoscowchat.presenters.interfaces.IFindInterlocutorSerPresenter
+import javax.inject.Inject
 
 
 class FindInterlocutorService : Service() , IFindInterlocutorSerPresenter{
 
-    private val presenter: FindInterlocutorPresenter by lazy { FindInterlocutorPresenter(this) }
+    @Inject
+    lateinit var presenter: FindInterlocutorPresenter
     private val notificationHelper: NotificationHelper by lazy { NotificationHelper(this) }
+
+    override fun onCreate() {
+        super.onCreate()
+        App.appComponent.inject(this)
+        presenter.subscribe(this)
+    }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val command = intent?.getIntExtra(SERVICE_HANDLE_WORK_KEY, 0)
         when(command){
             START_SEARCHING_MODE -> {
-                presenter.startSearching()
+                presenter.onClickStartFinding()
             }
             STOP_SEARCHING_MODE -> {
-                presenter.stopSearching()
+                presenter.onClickStopFinding()
                 stopSelf()
             }
         }
@@ -37,13 +45,16 @@ class FindInterlocutorService : Service() , IFindInterlocutorSerPresenter{
         return null
     }
 
-    override fun interlocutorIsFound() {
+    override fun showNotification() {
         if ( !(applicationContext as App).isInApplication() ){
             notificationHelper.cancelAllNotifications()
             val notification = notificationHelper
                 .createNotification("Собеседник найден", ActivityConstants.CHAT_ACTIVITY)
             notificationHelper.notify(CHAT_CREATED_MODE, notification)
         }
+    }
+
+    override fun stopFindInterlocutorService() {
         stopForeground(false)
         stopSelf()
     }

@@ -1,28 +1,34 @@
 package study.kotlin.anonmoscowchat.presenters
 
-import android.util.Log
-import study.kotlin.anonmoscowchat.commons.constants.ServiceConstants.TAG
 import study.kotlin.anonmoscowchat.model.Model
 import study.kotlin.anonmoscowchat.presenters.interfaces.IFindInterlocutorPresenterModel
 import study.kotlin.anonmoscowchat.presenters.interfaces.IFindInterlocutorSerPresenter
 
-class FindInterlocutorPresenter(val service : IFindInterlocutorSerPresenter) : IFindInterlocutorPresenterModel {
+class FindInterlocutorPresenter(val model: Model) : IFindInterlocutorPresenterModel {
 
-    val model = Model.getInstance()
+    lateinit var service : IFindInterlocutorSerPresenter
 
     init {
-        model.setFindInterlocutorPresenter(this)
+        model.findInterlocutorPresenter = this
     }
 
-    fun startSearching(){
-        model.startFindingInterlocutor()
+    fun subscribe(service : IFindInterlocutorSerPresenter){
+        this.service = service
     }
 
-    fun stopSearching(){
-        model.stopSearching()
+    fun onClickStartFinding(){
+        model.onClickStartFinding()
     }
 
-    override fun interlocutorIsFound() {
-        service.interlocutorIsFound()
+    fun onClickStopFinding(){
+        model.onClickStopFinding()
+    }
+
+    override fun showNotification() {
+        service.showNotification()
+    }
+
+    override fun stopFindInterlocutorService() {
+        service.stopFindInterlocutorService()
     }
 }

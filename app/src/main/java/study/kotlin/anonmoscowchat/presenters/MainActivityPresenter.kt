@@ -1,23 +1,28 @@
 package study.kotlin.anonmoscowchat.presenters
 
+import android.util.Log
 import study.kotlin.anonmoscowchat.model.Model
 import study.kotlin.anonmoscowchat.presenters.interfaces.IMainPresenterModel
 import study.kotlin.anonmoscowchat.presenters.interfaces.IMainActivityPresenter
 
-class MainActivityPresenter(private val mainActivity : IMainActivityPresenter) :
-    IMainPresenterModel {
+class MainActivityPresenter(val model: Model) : IMainPresenterModel {
 
-    private val model = Model.getInstance()
+    lateinit var mainActivity : IMainActivityPresenter
 
-    fun subscribe(){
-        model.setMainAPresenterAndCheckHasActiveChat(this)
+    init {
+        model.mainActivityPresenter = this
     }
 
-    override fun chatIsActive() {
+    fun subscribe(mainActivity : IMainActivityPresenter ){
+        this.mainActivity = mainActivity
+        model.mainActivityAttached()
+    }
+
+    override fun startChatActivity() {
         mainActivity.startChatActivity()
     }
 
-    override fun chatIsNotActive() {
-        mainActivity.activateButton()
+    override fun showFindInterlocutorButton() {
+        mainActivity.showFindInterlocutorButton()
     }
 }

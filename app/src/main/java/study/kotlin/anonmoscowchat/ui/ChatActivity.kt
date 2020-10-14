@@ -1,6 +1,5 @@
 package study.kotlin.anonmoscowchat.ui
 
-import android.content.DialogInterface
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.res.Configuration
@@ -11,7 +10,6 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -19,18 +17,20 @@ import kotlinx.android.synthetic.main.chat_activity.*
 import study.kotlin.anonmoscowchat.messages.Message
 import study.kotlin.anonmoscowchat.R
 import study.kotlin.anonmoscowchat.adapter.MessageAdapter
-import study.kotlin.anonmoscowchat.commons.constants.ActivityConstants
-import study.kotlin.anonmoscowchat.commons.constants.ActivityConstants.DARK_THEME
-import study.kotlin.anonmoscowchat.commons.constants.ServiceConstants
+import study.kotlin.anonmoscowchat.application.App
+import study.kotlin.anonmoscowchat.commons.constants.ChatActivityConstants
+import study.kotlin.anonmoscowchat.commons.constants.ChatActivityConstants.DARK_THEME
 import study.kotlin.anonmoscowchat.presenters.ChatActivityPresenter
 import study.kotlin.anonmoscowchat.presenters.interfaces.IChatActivityPresenter
+import javax.inject.Inject
 
 //onBackPressed реализовать
 
 
 class ChatActivity : AppCompatActivity() , IChatActivityPresenter {
 
-    private val presenter = ChatActivityPresenter(this)
+    @Inject
+    lateinit var presenter: ChatActivityPresenter
     private lateinit var adapter: MessageAdapter
     private lateinit var sharedPreferences:SharedPreferences
 
@@ -38,11 +38,11 @@ class ChatActivity : AppCompatActivity() , IChatActivityPresenter {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.chat_activity)
+        App.appComponent.inject(this)
         toolbar.setNavigationIcon(R.drawable.baseline_clear_white_24)
         setSupportActionBar(toolbar)
         toolbar.setNavigationOnClickListener {
-            StopChatDialogFragment(this)
-                .show(supportFragmentManager, ActivityConstants.STOP_CHAT)
+            showStopChatDialogWindow()
         }
         sharedPreferences= PreferenceManager.getDefaultSharedPreferences(this)
 
@@ -52,15 +52,18 @@ class ChatActivity : AppCompatActivity() , IChatActivityPresenter {
                 LinearLayoutManager.VERTICAL,
                 false
             )
+
         adapter = MessageAdapter()
         message_recyclerview.adapter = adapter
-        send_button.setOnClickListener { onClickSend() }
+        send_button.setOnClickListener { onClickSendMessage() }
     }
 
     override fun onStart() {
         super.onStart()
+
         adapter.clearData()
-        presenter.subscribe()
+        presenter.subscribe(this)
+        message_recyclerview.scrollToPosition(adapter.itemCount-1)
     }
 
     override fun onStop() {
@@ -68,19 +71,19 @@ class ChatActivity : AppCompatActivity() , IChatActivityPresenter {
         presenter.unsubscribe()
     }
 
-    private fun onClickSend(){
+    private fun onClickSendMessage(){
         val textFromEditText = write_edit_text.text.toString()
-        if (isValidText(textFromEditText)) presenter.sendMessage(write_edit_text.text.toString())
+        if (isValidText(textFromEditText)) presenter.onClickSendMessage(textFromEditText)
         write_edit_text.setText("")
     }
 
-    fun stopChat(){
-        presenter.stopChat()
+    private fun showStopChatDialogWindow(){
+        StopChatDialogFragment(this , ChatActivityConstants.STOP_CHAT_DIALOG_MODE)
+            .show(supportFragmentManager, ChatActivityConstants.STOP_CHAT)
     }
 
-    override fun updateMessages(list: MutableList<Message>) {
-        adapter.updateMessageList(list)
-        message_recyclerview.scrollToPosition(adapter.itemCount-1)
+    fun onClickStopChat(){
+        presenter.onClickStopChat()
     }
 
     override fun addMessage(message: Message) {
@@ -88,21 +91,20 @@ class ChatActivity : AppCompatActivity() , IChatActivityPresenter {
         message_recyclerview.scrollToPosition(adapter.itemCount-1)
     }
 
-    override fun chatStopped(showDialogWindow: Boolean) {
-        if (showDialogWindow){
-            AlertDialog.Builder(this)
-                .setMessage("Ваш собеседник прекратил диалог")
-                .setPositiveButton("Ок"){ dialogInterface: DialogInterface, i: Int ->
-                    dialogInterface.cancel()
-                }
-                .create()
-                .show()
-            toolbar.setNavigationOnClickListener {
-                startActivity(Intent(this, MainActivity::class.java))
-                finish()
-            }
-            write_linear_layout.visibility =View.GONE
-        } else{
+    override fun startMainActivity() {
+        startActivity(Intent(this, MainActivity::class.java))
+        finish()
+    }
+
+    override fun showDialogWindow() {
+        Log.e("Dagger", "ChatActivity : showDialogWindow")
+        StopChatDialogFragment(this , ChatActivityConstants.CHAT_STOPPED_DIALOG_MODE)
+            .show(supportFragmentManager, ChatActivityConstants.CHAT_STOPPED)
+        write_linear_layout.visibility =View.GONE
+    }
+
+    override fun setToolbarNavigationButtonToStartMainActivity() {
+        toolbar.setNavigationOnClickListener {
             startActivity(Intent(this, MainActivity::class.java))
             finish()
         }
@@ -148,5 +150,9 @@ class ChatActivity : AppCompatActivity() , IChatActivityPresenter {
             Toast.makeText(this, "Введите текст", Toast.LENGTH_SHORT).show()
             return false
         } else return true
+    }
+
+    override fun onBackPressed() {
+        showStopChatDialogWindow()
     }
 }

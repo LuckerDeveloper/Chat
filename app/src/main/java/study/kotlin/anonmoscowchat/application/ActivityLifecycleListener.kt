@@ -13,8 +13,9 @@ class ActivityLifecycleListener(val app: App) : Application.ActivityLifecycleCal
     }
 
     override fun onActivityStarted(activity: Activity) {
-        if (activity is MainActivity){
-            app.isMainActivityForeground=true
+        when(activity){
+            is MainActivity -> app.isMainActivityForeground=true
+//            is ChatActivity -> app.isChatActivityForeground = true
         }
         app.countOfRunningActivities++
     }
@@ -26,8 +27,9 @@ class ActivityLifecycleListener(val app: App) : Application.ActivityLifecycleCal
     }
 
     override fun onActivityStopped(activity: Activity) {
-        if (activity is MainActivity){
-            app.isMainActivityForeground=false
+        when(activity){
+            is MainActivity -> app.isMainActivityForeground=false
+//            is ChatActivity -> app.isChatActivityForeground = false
         }
         app.countOfRunningActivities--
     }

@@ -1,26 +1,17 @@
 package study.kotlin.anonmoscowchat.model
 
 import android.util.Log
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
-import study.kotlin.anonmoscowchat.commons.constants.ServiceConstants
-import study.kotlin.anonmoscowchat.commons.constants.ServiceConstants.TAG
-import study.kotlin.anonmoscowchat.firebasehelpers.DatabaseChatHelper
-import study.kotlin.anonmoscowchat.firebasehelpers.DatabaseMessageHelper
-import study.kotlin.anonmoscowchat.firebasehelpers.DatabaseUserHelper
-import study.kotlin.anonmoscowchat.firebasehelpers.FirebaseAuthHelper
+import study.kotlin.anonmoscowchat.Repository
+import study.kotlin.anonmoscowchat.application.App
+import study.kotlin.anonmoscowchat.chat.Chat
+import study.kotlin.anonmoscowchat.commons.constants.ViewTypeConstants
 import study.kotlin.anonmoscowchat.messages.Message
 import study.kotlin.anonmoscowchat.presenters.interfaces.IChatPresenterModel
 import study.kotlin.anonmoscowchat.presenters.interfaces.IFindInterlocutorPresenterModel
 import study.kotlin.anonmoscowchat.presenters.interfaces.IMainPresenterModel
-import study.kotlin.anonmoscowchat.services.FindInterlocutorService
 import study.kotlin.anonmoscowchat.users.User
-
-
-// разобраться с listener, несколькократные сообщения,
-// в userlistener внедрить helper
-
-//2 chat activity
+import javax.inject.Inject
 
 const val MESSAGES = "messages"
 const val CHATS = "chats"
@@ -29,138 +20,153 @@ const val IS_LOOKING_FOR = "lookingFor"
 const val CHAT_ID = "chatId"
 const val IS_ACTIVE = "active"
 
-class Model private constructor() {
-
-    companion object{
-        const val TAG="Model"
-        private var INSTANCE : Model? = null
-        fun getInstance():Model {
-            if (INSTANCE==null) INSTANCE=Model()
-            return INSTANCE!!
-        }
-    }
+class Model(val repository: Repository) {
 
     lateinit var chatPresenter: IChatPresenterModel
-    private lateinit var mainActivityPresenter: IMainPresenterModel
-    private var findInterlocutorPresenter : IFindInterlocutorPresenterModel? = null
+    lateinit var mainActivityPresenter: IMainPresenterModel
+    lateinit var findInterlocutorPresenter : IFindInterlocutorPresenterModel
 
-    val mFirebaseAuth = FirebaseAuth.getInstance()
-
-    val firebaseAuthHelper = FirebaseAuthHelper(this)
-    val databaseChatHelper = DatabaseChatHelper(this)
-    val databaseUserHelper = DatabaseUserHelper(this)
-    val databaseMessageHelper = DatabaseMessageHelper(this)
+    @Inject
+    lateinit var app: App
 
     var userId: String? = null
-    var currentChatId: String? = null
+    var chatId: String? = null
+    var isInChatActivity = false
 
-    fun setMainAPresenterAndCheckHasActiveChat(presenter: IMainPresenterModel){
-        this.mainActivityPresenter = presenter
-        userId = mFirebaseAuth.currentUser?.uid
-        if (userId==null) firebaseAuthHelper.signIn()
-        else{
-            setChatId()
-        }
+    init {
+        App.appComponent.inject(this)
     }
 
-    fun userIsLogged(){
-        if (userId!=null) {
-            databaseUserHelper.setUser(userId!!, User())
-            setChatId()
+    fun mainActivityAttached(){
+        repository.model = this
+        userId = repository.getUserId()
+        if (userId==null){
+            repository.signIn()
         } else{
-            //необходимо перезапустить приложение
-            Log.e(TAG,"userId is null")
+            requestToGetChatId()
         }
     }
 
-    private fun setChatId(){
-        //Проверка на наличие активного чата
-        userId?.let { databaseUserHelper.getChatIdFromDB(it) }
+    fun authIsSuccessful(){
+        userId = repository.getUserId()
+        requestToGetChatId()
     }
 
-    fun chatIdHasSet(){
-        checkHasActiveChat()
+    private fun requestToGetChatId(){
+        userId?.let { repository.requestToGetChatId(it) }
     }
 
-    private fun checkHasActiveChat(){
-        if (currentChatId!=null){
-            databaseChatHelper.getChatIsActive(currentChatId!!)
+    fun initChatId(chatIdFromDb: String){
+        this.chatId = chatIdFromDb
+        if (chatId!=null){
+            repository.requestToGetIsChatActive(chatId!!)
         } else{
-            chatIsNotActive()
+            mainActivityPresenter.showFindInterlocutorButton()
         }
     }
 
-    fun chatIsActive(){
-        currentChatId?.let { databaseChatHelper.addChatIsActiveListener(it) }
-        mainActivityPresenter.chatIsActive()
-        findInterlocutorPresenter?.interlocutorIsFound()
+    fun setIsChatActive(isChatActive : Boolean){
+        if (isInChatActivity&&!isChatActive){
+            chatPresenter.showDialogWindow()
+            chatPresenter.setToolbarNavigationButtonToStartMainActivity()
+            chatId?.let { repository.removeChatIsActiveListener(it) }
+            chatId?.let { repository.removeMessageListener(it) }
+            mainActivityPresenter.showFindInterlocutorButton()
+            isInChatActivity=false
+        } else if (!isInChatActivity){
+            chatId?.let { repository.removeChatIsActiveListener(it) }
+            if (isChatActive){
+                startChat()
+            } else{
+                mainActivityPresenter.showFindInterlocutorButton()
+            }
+        }
     }
 
-    fun chatIsNotActive(){
-        mainActivityPresenter.chatIsNotActive()
+    private fun startChat(){
+        mainActivityPresenter.startChatActivity()
+        isInChatActivity=true
     }
 
-    fun startFindingInterlocutor(){
+    fun onClickStartFinding(){
         val currentUser = User()
         currentUser.isLookingFor=true
-        userId?.let { databaseUserHelper.setUser(it, currentUser) }
-        databaseUserHelper.createChat()
+        userId?.let { repository.setUserInDB(it, currentUser) }
+        repository.addFindingInterlocutorUsersListener()
     }
 
-    fun chatCreated(){
-        chatIsActive()
+    fun onClickStopFinding(){
+        userId?.let { repository.setIsLookingFor(it, false) }
+        repository.removeFindingInterlocutorUsersListener()
     }
 
-    fun stopSearching(){
-        userId?.let { databaseUserHelper.setIsLookingFor(it, false) }
-        databaseUserHelper.removeListener()
+    fun onFindingInterlocutorUserAdded(interlocutorUserId : String) {
+        if (interlocutorUserId< userId.toString()){
+            val chatId = repository.pushChat()
+            this.chatId = chatId
+            val chat = Chat()
+
+            repository.setChatInDB(chatId, chat)
+            userId?.let { repository.setUserIdInChatInDB(chatId, it) }
+            repository.setUserIdInChatInDB(chatId, interlocutorUserId)
+
+            userId?.let { repository.setChatIdInDB(it, chatId ) }
+            repository.setChatIdInDB(interlocutorUserId, chatId)
+            userId?.let { repository.setIsLookingFor(it, false) }
+            repository.setIsLookingFor(interlocutorUserId, false)
+            repository.removeFindingInterlocutorUsersListener()
+
+            findInterlocutorPresenter.showNotification()
+            findInterlocutorPresenter.stopFindInterlocutorService()
+
+            startChat()
+        }
     }
 
+    fun onFindingInterlocutorUserChanged(changedUserUserId : String, user : User){
+        if (userId == changedUserUserId){
+            chatId = user.chatId
+            repository.removeFindingInterlocutorUsersListener()
 
-
-
-
-
-    fun setChatActivityPresenterAndListener(presenter: IChatPresenterModel){
-        this.chatPresenter = presenter
-        currentChatId?.let { databaseMessageHelper.addMessageListener(it) }
+            findInterlocutorPresenter.showNotification()
+            findInterlocutorPresenter.stopFindInterlocutorService()
+            startChat()
+        }
     }
 
-    fun removeMessageListener(){
-        currentChatId?.let {
-            databaseMessageHelper.removeMessageListener(it)
-            databaseChatHelper.removeChatIsActiveListener(it) }
-    }
-
-    fun newMessageAppeared(message: Message){
+    fun setNewMessageInModel(message: Message){
+        if (message.author==userId) message.viewType=ViewTypeConstants.MY_MESSAGE
+        else message.viewType= ViewTypeConstants.OTHER_MESSAGE
         chatPresenter.addMessage(message)
     }
 
-    fun chatStopped(){
-        chatPresenter.chatStopped(true)
-        Log.v(ServiceConstants.TAG, "chat stopped")
-    }
-
-    fun sendMessage(messageText: String) {
+    fun onClickSendMessage(messageText: String) {
         val message = Message(messageText, userId)
         message.timeStamp = ServerValue.TIMESTAMP
-        currentChatId?.let { databaseMessageHelper.addMessage(it, message) }
+        chatId?.let { repository.pushAndSetMessage(it, message) }
     }
 
-    fun stopChat() {
-        currentChatId?.let {
-            databaseChatHelper.setIsActive(it, false)
-            databaseChatHelper.removeChatIsActiveListener(it)
-        }
-        userId?.let { databaseUserHelper.setUser(it, User()) }
-        chatPresenter.chatStopped(false)
+    fun onClickStopChat(){
+        chatId?.let { repository.setIsChatActiveInDB(it, false) }
+        chatId?.let { repository.removeChatIsActiveListener(it) }
+        chatId?.let { repository.databaseMessageHelper.removeMessageListener(it) }
+        userId?.let { repository.setUserInDB(it, User()) }
+        mainActivityPresenter.showFindInterlocutorButton()
+        chatPresenter.startMainActivity()
+        isInChatActivity=false
     }
 
-
-
-
-    fun setFindInterlocutorPresenter(presenter: IFindInterlocutorPresenterModel){
-        this.findInterlocutorPresenter=presenter
+    fun chatActivitySubscribed(){
+        chatId?.let { repository.addMessageListener(it) }
+        chatId?.let { repository.addChatIsActiveListener(it) }
     }
 
+    fun chatActivityUnsubscribed(){
+        chatId?.let { repository.removeMessageListener(it) }
+        chatId?.let { repository.removeChatIsActiveListener(it) }
+    }
+
+    companion object{
+        val TAG="Model"
+    }
 }

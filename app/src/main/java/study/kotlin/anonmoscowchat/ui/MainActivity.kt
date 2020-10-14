@@ -13,8 +13,9 @@ import study.kotlin.anonmoscowchat.R
 import study.kotlin.anonmoscowchat.application.App
 import study.kotlin.anonmoscowchat.commons.NotificationHelper
 import study.kotlin.anonmoscowchat.commons.constants.ActivityConstants
+import study.kotlin.anonmoscowchat.commons.constants.ChatActivityConstants
+import study.kotlin.anonmoscowchat.commons.constants.ChatActivityConstants.DARK_THEME
 import study.kotlin.anonmoscowchat.commons.constants.MainActivityConstants
-import study.kotlin.anonmoscowchat.commons.constants.MainActivityConstants.FIND_USER_SERVICE_ACTION
 import study.kotlin.anonmoscowchat.commons.constants.ServiceConstants
 import study.kotlin.anonmoscowchat.commons.constants.ServiceConstants.FIND_MODE_NOTIFICATION_ID
 import study.kotlin.anonmoscowchat.commons.constants.ServiceConstants.SERVICE_HANDLE_WORK_KEY
@@ -23,12 +24,15 @@ import study.kotlin.anonmoscowchat.commons.constants.ServiceConstants.STOP_SEARC
 import study.kotlin.anonmoscowchat.presenters.MainActivityPresenter
 import study.kotlin.anonmoscowchat.presenters.interfaces.IMainActivityPresenter
 import study.kotlin.anonmoscowchat.services.FindInterlocutorService
+import javax.inject.Inject
 
 
 class MainActivity : AppCompatActivity(), IMainActivityPresenter {
 
+    @Inject
+    lateinit var presenter: MainActivityPresenter
+
     private lateinit var sharedPreferences: SharedPreferences
-    private lateinit var presenter: MainActivityPresenter
     private val notificationHelper : NotificationHelper by lazy {
         NotificationHelper(this)
     }
@@ -37,13 +41,11 @@ class MainActivity : AppCompatActivity(), IMainActivityPresenter {
         setDarkMode()
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
-        presenter = MainActivityPresenter(this)
+        App.appComponent.inject(this)
 
         if (intent.getIntExtra(MainActivityConstants.BUTTON_MODE_KEY, 0)==MainActivityConstants.STOP_SEARCHING_MODE_BUTTON){
-            start_chat_button.text = "Остановить поиск"
+            start_chat_button.text = resources.getString(R.string.stop_searching_button_text)
         }
-
 
         start_chat_button.setOnClickListener {
             if (start_chat_button.text.toString()==resources.getString(R.string.start_searching_button_text)){
@@ -58,13 +60,14 @@ class MainActivity : AppCompatActivity(), IMainActivityPresenter {
 
     override fun onStart() {
         super.onStart()
-        presenter.subscribe()
+        presenter.subscribe(this)
         notificationHelper.cancelAllNotifications()
     }
 
     override fun onStop() {
         super.onStop()
-        if (start_chat_button.text.toString()=="Остановить поиск"&& !(applicationContext as App).isInApplication()){
+        if (start_chat_button.text.toString()==resources.getString(R.string.stop_searching_button_text)
+            && !(applicationContext as App).isInApplication()){
             val notification =notificationHelper
                 .createNotification("Поиск собеседника", ActivityConstants.MAIN_ACTIVITY)
             notificationHelper.notify(FIND_MODE_NOTIFICATION_ID, notification)
@@ -73,8 +76,8 @@ class MainActivity : AppCompatActivity(), IMainActivityPresenter {
 
     private fun setDarkMode(){
         sharedPreferences= PreferenceManager.getDefaultSharedPreferences(this)
-        if (sharedPreferences.contains(ActivityConstants.DARK_THEME)){
-            val darkThemeFlag = sharedPreferences.getBoolean(ActivityConstants.DARK_THEME, false)
+        if (sharedPreferences.contains(DARK_THEME)){
+            val darkThemeFlag = sharedPreferences.getBoolean(DARK_THEME, false)
             if (darkThemeFlag){
                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
             } else{
@@ -88,7 +91,7 @@ class MainActivity : AppCompatActivity(), IMainActivityPresenter {
         finish()
     }
 
-    override fun activateButton() {
+    override fun showFindInterlocutorButton() {
         progress_bar.visibility = View.GONE
         start_chat_button.visibility=View.VISIBLE
     }

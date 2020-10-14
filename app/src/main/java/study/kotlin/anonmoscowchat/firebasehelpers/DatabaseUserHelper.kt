@@ -2,40 +2,52 @@ package study.kotlin.anonmoscowchat.firebasehelpers
 
 import android.util.Log
 import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.Query
+import study.kotlin.anonmoscowchat.Repository
 import study.kotlin.anonmoscowchat.listeners.FirebaseSetChatIdListener
-import study.kotlin.anonmoscowchat.listeners.FirebaseUsersListener
+import study.kotlin.anonmoscowchat.listeners.FindingInterlocutorUsersListener
 import study.kotlin.anonmoscowchat.model.CHAT_ID
 import study.kotlin.anonmoscowchat.model.IS_LOOKING_FOR
 import study.kotlin.anonmoscowchat.model.Model
 import study.kotlin.anonmoscowchat.model.USERS
 import study.kotlin.anonmoscowchat.users.User
+import javax.inject.Inject
 
-class DatabaseUserHelper(val model: Model) {
+class DatabaseUserHelper   {
+
+    lateinit var repository: Repository
 
     private val mDatabaseUserReference = FirebaseDatabase.getInstance().reference.child(USERS)
-    private val lookingForQuery=mDatabaseUserReference.orderByChild(IS_LOOKING_FOR).equalTo(true)
-    private val lookingForUsersListener by lazy {
-        FirebaseUsersListener(model)
+    private val findingUsersQuery=mDatabaseUserReference.orderByChild(IS_LOOKING_FOR).equalTo(true)
+    private val findingInterlocutorUsersListener by lazy { FindingInterlocutorUsersListener(this)}
+
+    fun onFindingInterlocutorUserAdded(interlocutorUserId: String){
+        repository.onFindingInterlocutorUserAdded(interlocutorUserId)
     }
 
+    fun onFindingInterlocutorUserChanged(changedUserUserId : String, user: User){
+        repository.onFindingInterlocutorUserChanged(changedUserUserId, user)
+    }
+
+    fun setChatId(currentChatId : String){
+        repository.setChatIdInModel(currentChatId)
+    }
 
     fun setUser(userId : String, user: User){
         mDatabaseUserReference.child(userId).setValue(user)
     }
 
-    fun getChatIdFromDB(userId: String){
+    fun addListenerForChatIdValue(userId: String){
         mDatabaseUserReference.child(userId).child(CHAT_ID)
-            .addListenerForSingleValueEvent(FirebaseSetChatIdListener(model))
+            .addListenerForSingleValueEvent(FirebaseSetChatIdListener(this))
     }
 
-    fun createChat (){
-        lookingForQuery.addChildEventListener(lookingForUsersListener)
+    fun addFindingInterlocutorUsersListener(){
+        findingUsersQuery.addChildEventListener(findingInterlocutorUsersListener)
     }
 
-    fun removeListener(){
+    fun removeFindingInterlocutorUsersListener(){
         try {
-            lookingForQuery.removeEventListener(lookingForUsersListener)
+            findingUsersQuery.removeEventListener(findingInterlocutorUsersListener)
         } catch (e : Exception){
             Log.e(Model.TAG, "stopSearching: listener already deleted. "+e.toString())
         }
@@ -45,7 +57,7 @@ class DatabaseUserHelper(val model: Model) {
         mDatabaseUserReference.child(userId).child(IS_LOOKING_FOR).setValue(value)
     }
 
-    fun setChatId(userId: String, chatId: String?){
+    fun setChatIdInDB(userId: String, chatId: String?){
         mDatabaseUserReference.child(userId).child(CHAT_ID).setValue(chatId)
     }
 }

@@ -1,5 +1,6 @@
 package study.kotlin.anonmoscowchat.adapter
 
+import android.util.Log
 import androidx.collection.SparseArrayCompat
 import androidx.recyclerview.widget.RecyclerView
 import android.view.LayoutInflater
@@ -38,11 +39,6 @@ class MessageAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     override fun getItemViewType(position: Int): Int {
         return items[position].getViewTypes()
-    }
-
-    fun updateMessageList(list: MutableList<Message>){
-        items = list
-        notifyDataSetChanged()
     }
 
     fun addMessage(message: Message){
