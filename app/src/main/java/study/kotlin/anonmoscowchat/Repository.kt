@@ -65,7 +65,7 @@ class Repository {
 
 
 
-    fun setChatIdInModel(chatId: String) {model.initChatId(chatId)}
+    fun setChatIdInModel(chatId: String?) {model.initChatId(chatId)}
 
     fun setIsChatActiveInModel(isChatActive : Boolean){ model.setIsChatActive(isChatActive)}
 

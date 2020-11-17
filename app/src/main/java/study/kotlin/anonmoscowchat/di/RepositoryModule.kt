@@ -14,7 +14,6 @@ import javax.inject.Singleton
 class RepositoryModule{
 
     @Provides
-    @Singleton
     fun provideRepository(databaseUserHelper: DatabaseUserHelper
                           , databaseChatHelper: DatabaseChatHelper
                           , databaseMessageHelper: DatabaseMessageHelper

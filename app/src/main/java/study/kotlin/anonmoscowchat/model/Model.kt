@@ -26,16 +26,11 @@ class Model(val repository: Repository) {
     lateinit var mainActivityPresenter: IMainPresenterModel
     lateinit var findInterlocutorPresenter : IFindInterlocutorPresenterModel
 
-    @Inject
     lateinit var app: App
 
     var userId: String? = null
     var chatId: String? = null
     var isInChatActivity = false
-
-    init {
-        App.appComponent.inject(this)
-    }
 
     fun mainActivityAttached(){
         repository.model = this
@@ -56,7 +51,7 @@ class Model(val repository: Repository) {
         userId?.let { repository.requestToGetChatId(it) }
     }
 
-    fun initChatId(chatIdFromDb: String){
+    fun initChatId(chatIdFromDb: String?){
         this.chatId = chatIdFromDb
         if (chatId!=null){
             repository.requestToGetIsChatActive(chatId!!)

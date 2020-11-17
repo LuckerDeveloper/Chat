@@ -18,7 +18,8 @@ class DatabaseUserHelper   {
 
     private val mDatabaseUserReference = FirebaseDatabase.getInstance().reference.child(USERS)
     private val findingUsersQuery=mDatabaseUserReference.orderByChild(IS_LOOKING_FOR).equalTo(true)
-    private val findingInterlocutorUsersListener by lazy { FindingInterlocutorUsersListener(this)}
+    private val findingInterlocutorUsersListener  : FindingInterlocutorUsersListener
+            by lazy { FindingInterlocutorUsersListener(this)}
 
     fun onFindingInterlocutorUserAdded(interlocutorUserId: String){
         repository.onFindingInterlocutorUserAdded(interlocutorUserId)
@@ -28,7 +29,7 @@ class DatabaseUserHelper   {
         repository.onFindingInterlocutorUserChanged(changedUserUserId, user)
     }
 
-    fun setChatId(currentChatId : String){
+    fun setChatIdInModel(currentChatId : String?){
         repository.setChatIdInModel(currentChatId)
     }
 

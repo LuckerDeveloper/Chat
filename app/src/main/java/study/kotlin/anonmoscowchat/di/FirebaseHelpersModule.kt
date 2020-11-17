@@ -14,18 +14,14 @@ import javax.inject.Singleton
 class FirebaseHelpersModule {
 
     @Provides
-    @Singleton
     fun provideFirebaseAuthHelper() : FirebaseAuthHelper= FirebaseAuthHelper()
 
     @Provides
-    @Singleton
     fun provideDatabaseChatHelper() : DatabaseChatHelper= DatabaseChatHelper()
 
     @Provides
-    @Singleton
     fun provideDatabaseMessageHelper() : DatabaseMessageHelper = DatabaseMessageHelper()
 
     @Provides
-    @Singleton
     fun provideDatabaseUserHelper() : DatabaseUserHelper= DatabaseUserHelper()
 }

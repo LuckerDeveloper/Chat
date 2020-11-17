@@ -12,14 +12,11 @@ import javax.inject.Singleton
 class PresentersModule {
 
     @Provides
-    @Singleton
     fun provideMainActivityPresenter(model: Model): MainActivityPresenter = MainActivityPresenter(model)
 
     @Provides
-    @Singleton
     fun provideChatActivityPresenter(model: Model): ChatActivityPresenter = ChatActivityPresenter(model)
 
     @Provides
-    @Singleton
     fun provideFindInterlocutorPresenter(model: Model): FindInterlocutorPresenter = FindInterlocutorPresenter(model)
 }

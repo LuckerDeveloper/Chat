@@ -7,8 +7,9 @@ import com.google.firebase.database.DatabaseError
 import study.kotlin.anonmoscowchat.firebasehelpers.DatabaseUserHelper
 import study.kotlin.anonmoscowchat.model.*
 import study.kotlin.anonmoscowchat.users.User
+import javax.inject.Inject
 
-class FindingInterlocutorUsersListener(private val databaseUserHelper: DatabaseUserHelper ): ChildEventListener {
+class FindingInterlocutorUsersListener @Inject constructor(val databaseUserHelper: DatabaseUserHelper ): ChildEventListener {
 
     override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
 
